@@ -6,7 +6,7 @@ collection.
 """
 
 from __future__ import annotations
-
+from .mock_handler import MockHandler
 import time
 from typing import Iterable, List
 
@@ -34,9 +34,14 @@ class ScienceLab:
     nrf : pslab.peripherals.NRF24L01
     """
 
-    def __init__(self, device: ConnectionHandler | None = None):
-        self.device = device if device is not None else autoconnect()
-        self.firmware = self.device.get_firmware_version()
+    def __init__(self, device: ConnectionHandler | None = None, mock: bool = False):
+        if mock:
+            self.device = MockHandler()
+            self.device.open()
+            self.firmware = "MOCK_FW_1.0" # Fake firmware version
+        else:
+            self.device = device if device is not None else autoconnect()
+            self.firmware = self.device.get_firmware_version()
         self.logic_analyzer = LogicAnalyzer(device=self.device)
         self.oscilloscope = Oscilloscope(device=self.device)
         self.waveform_generator = WaveformGenerator(device=self.device)
