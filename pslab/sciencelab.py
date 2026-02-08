@@ -35,7 +35,17 @@ class ScienceLab:
     """
 
     def __init__(self, device: ConnectionHandler | None = None, mock: bool = False):
+        """
+        Initialize the ScienceLab interface.
+        
+        :param device: The connection handler (real hardware).
+        :param mock: If True, use the MockHandler for simulation.
+        :raises ValueError: If both 'device' and 'mock=True' are provided.
+        """
         if mock:
+            if device is not None:
+                raise ValueError("Cannot initialize ScienceLab with both a physical device and mock=True.")
+            
             self.device = MockHandler()
             self.device.open()
             self.firmware = "MOCK_FW_1.0" # Fake firmware version

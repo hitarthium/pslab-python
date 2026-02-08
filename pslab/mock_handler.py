@@ -23,9 +23,16 @@ class MockHandler:
         self.logger = logging.getLogger(__name__)
 
     def open(self, port: Optional[str] = None) -> None:
+        """
+        Simulate opening the connection.
+        
+        Args:
+            port (str, optional): The port to connect to. Updates the handler's port if provided.
+        """
+        if port:
+            self.port = port
         self.connected = True
         self.logger.info(f"MockHandler connected on {self.port}")
-
     def close(self) -> None:
         self.connected = False
         self.read_buffer.clear()
@@ -51,6 +58,17 @@ class MockHandler:
     def read(self, size: int = 1) -> bytes:
         if not self.connected:
             raise RuntimeError("Attempted to read from closed MockHandler.")
+
+        if len(self.read_buffer) < size:
+            self.logger.warning(f"MockHandler: Requested {size} bytes, but only {len(self.read_buffer)} available.")
+            # Return all currently available bytes and clear the buffer (partial read)
+            data = self.read_buffer[:]
+            self.read_buffer.clear()
+            return bytes(data)
+
+        data = self.read_buffer[:size]
+        self.read_buffer = self.read_buffer[size:]
+        return bytes(data)
 
         if len(self.read_buffer) < size:
             self.logger.warning(f"MockHandler: Requested {size} bytes, but only {len(self.read_buffer)} available.")
