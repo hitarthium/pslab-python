@@ -19,6 +19,17 @@ from pslab.instrument.power_supply import PowerSupply
 from pslab.instrument.waveform_generator import PWMGenerator, WaveformGenerator
 
 
+class MockFirmwareVersion:
+    """Mock firmware version object to mimic the real behavior."""
+    def __init__(self):
+        self.major = 1
+        self.minor = 0
+        self.patch = 0
+        self.version = "1.0.0"
+    
+    def __str__(self):
+        return self.version
+    
 class ScienceLab:
     """Aggregate interface for the PSLab's instruments.
 
@@ -37,10 +48,18 @@ class ScienceLab:
     def __init__(self, device: ConnectionHandler | None = None, mock: bool = False):
         """
         Initialize the ScienceLab interface.
+
+        Parameters
+        ----------
+        device : ConnectionHandler, optional
+            The connection handler (real hardware).
+        mock : bool, optional
+            If True, use the MockHandler for simulation.
         
-        :param device: The connection handler (real hardware).
-        :param mock: If True, use the MockHandler for simulation.
-        :raises ValueError: If both 'device' and 'mock=True' are provided.
+        Raises
+        ------
+        ValueError
+            If both 'device' and 'mock=True' are provided.
         """
         if mock:
             if device is not None:
@@ -48,16 +67,11 @@ class ScienceLab:
             
             self.device = MockHandler()
             self.device.open()
-            self.firmware = "MOCK_FW_1.0" # Fake firmware version
+            # FIX: Use an object so .major/.minor access works
+            self.firmware = MockFirmwareVersion()
         else:
             self.device = device if device is not None else autoconnect()
             self.firmware = self.device.get_firmware_version()
-        self.logic_analyzer = LogicAnalyzer(device=self.device)
-        self.oscilloscope = Oscilloscope(device=self.device)
-        self.waveform_generator = WaveformGenerator(device=self.device)
-        self.pwm_generator = PWMGenerator(device=self.device)
-        self.multimeter = Multimeter(device=self.device)
-        self.power_supply = PowerSupply(device=self.device)
 
     @property
     def temperature(self):

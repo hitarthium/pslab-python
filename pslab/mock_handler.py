@@ -56,12 +56,26 @@ class MockHandler:
         return len(data)
 
     def read(self, size: int = 1) -> bytes:
+        """
+        Read bytes from the mock buffer.
+        
+        Parameters
+        ----------
+        size : int
+            Number of bytes to read.
+            
+        Returns
+        -------
+        bytes
+            The data read from the buffer.
+        """
         if not self.connected:
             raise RuntimeError("Attempted to read from closed MockHandler.")
 
-        if len(self.read_buffer) < size:
-            self.logger.warning(f"MockHandler: Requested {size} bytes, but only {len(self.read_buffer)} available.")
-            # Return all currently available bytes and clear the buffer (partial read)
+        available = len(self.read_buffer)
+        if available < size:
+            self.logger.warning(f"MockHandler: Requested {size} bytes, but only {available} available.")
+            # Return what we have, then empty the buffer
             data = self.read_buffer[:]
             self.read_buffer.clear()
             return bytes(data)
@@ -69,6 +83,17 @@ class MockHandler:
         data = self.read_buffer[:size]
         self.read_buffer = self.read_buffer[size:]
         return bytes(data)
+
+    def get_ack(self) -> int:
+        """
+        Simulate receiving an acknowledgement from the device.
+        
+        Returns
+        -------
+        int
+            ACK value (0x01).
+        """
+        return 0x01
 
         if len(self.read_buffer) < size:
             self.logger.warning(f"MockHandler: Requested {size} bytes, but only {len(self.read_buffer)} available.")
